@@ -8,6 +8,7 @@ const config = require('./config');
 
 const TwoHeadlines = 'TwoHeadlines';
 const recentCount = 100;
+const maxTopN = 20;
 
 const recentBonusFactor = 4;
 const pivotLengthBonusFactor = 2;
@@ -170,7 +171,7 @@ const execute = Promise.coroutine(function* executeCo() {
 
 	const scored = _.orderBy(candidates, 'score', 'desc');
 
-	const topN = Math.min(scored.length, 5);
+	const topN = Math.min(scored.length, maxTopN);
 
 	console.log(`Picking candidate from top ${topN}`);
 
