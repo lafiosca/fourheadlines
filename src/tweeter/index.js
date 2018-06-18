@@ -3,6 +3,7 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
 const Twit = require('twit');
+const { lambda } = require('nice-lambda');
 const config = require('./config');
 
 const TwoHeadlines = 'TwoHeadlines';
@@ -16,7 +17,6 @@ const T = new Twit(config);
 
 const tweetHeadline = (headline) => {
 	console.log(`Tweeting headline: ${headline}`);
-	return false;
 	return T.post(
 		'statuses/update',
 		{ status: headline }
@@ -179,8 +179,5 @@ const execute = Promise.coroutine(function* executeCo() {
 	return tweetHeadline(scored[pick].combinedHeadline);
 });
 
-execute()
-	.catch((error) => {
-		console.error(`Processing error ${error}`);
-	});
+exports.handler = lambda(execute);
 
