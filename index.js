@@ -6,6 +6,11 @@ const Twit = require('twit');
 const config = require('./config');
 
 const TwoHeadlines = 'TwoHeadlines';
+const recentCount = 100;
+
+const recentBonusFactor = 4;
+const pivotLengthBonusFactor = 2;
+const balanceBonusFactor = 3;
 
 const T = new Twit(config);
 
@@ -25,9 +30,32 @@ const tweetHeadline = (headline) => {
 		});
 };
 
-const combineHeadlines = (headline, pivotIndex, otherHeadline, otherPivotIndex) => {
-	console.log(`      - Combining headlines "${headline.headline}" (${pivotIndex}) and "${otherHeadline.headline}" (${otherPivotIndex})`);
+const getRecentBonus = index =>
+	recentBonusFactor * ((recentCount - index) / recentCount);
 
+const getPivotLengthBonus = (length) => {
+	const adjLen = (length - 1) / 3;
+	return pivotLengthBonusFactor
+		* Math.max(0, adjLen / Math.sqrt((adjLen * adjLen) + 1));
+};
+
+const getBalanceBonus = (count, otherCount) => {
+	const total = count + otherCount + 1;
+	const diff = Math.abs(count - otherCount);
+	const ratio = diff / total;
+	const balance = Math.max(0.5 - ratio, 0) * 2;
+	return balance * balanceBonusFactor;
+};
+
+const combineHeadlines = (
+	headline,
+	pivotIndex,
+	otherHeadline,
+	otherPivotIndex,
+	pivot,
+	recentBonus,
+	pivotLengthBonus
+) => {
 	const firstPart = headline.headline.split(' ')
 		.slice(0, pivotIndex + 1)
 		.join(' ');
@@ -38,35 +66,55 @@ const combineHeadlines = (headline, pivotIndex, otherHeadline, otherPivotIndex) 
 
 	const combinedHeadline = `${firstPart} ${secondPart}`;
 
-	console.log(`        - Result: ${combinedHeadline}`);
+	const balanceBonus = getBalanceBonus(
+		pivotIndex,
+		otherHeadline.tokens.length - otherPivotIndex - 1
+	);
 
-	return combinedHeadline;
+	const score = recentBonus + pivotLengthBonus + balanceBonus;
+
+	return {
+		combinedHeadline,
+		score,
+		recentBonus,
+		pivotLengthBonus,
+		balanceBonus,
+		pivot,
+		pivotIndex,
+		otherPivotIndex,
+		headline: headline.headline,
+		otherHeadline: otherHeadline.headline,
+	};
 };
 
-const processPivotWith = (headline, pivotIndex, otherHeadline) => {
-	// console.log(`    - Trying pivot with other headline "${otherHeadline.headline}"`);
-
+const processPivotWith = (headline, pivotIndex, otherHeadline, recentBonus) => {
 	const pivot = headline.tokens[pivotIndex];
 	const candidates = [];
 	const end = otherHeadline.tokens.length - 1;
 
 	for (let i = 1; i < end; i += 1) {
 		if (otherHeadline.tokens[i] === pivot) {
-			candidates.push(combineHeadlines(headline, pivotIndex, otherHeadline, i));
+			candidates.push(combineHeadlines(
+				headline,
+				pivotIndex,
+				otherHeadline,
+				i,
+				pivot,
+				recentBonus,
+				getPivotLengthBonus(pivot.length)
+			));
 		}
 	}
 
 	return candidates;
 };
 
-const processPivot = (headline, pivotIndex, otherHeadlines) => {
-	console.log(`  - Trying pivot index ${pivotIndex} on headline "${headline.headline}"`);
-	return _.flatMap(otherHeadlines, otherHeadline =>
-		processPivotWith(headline, pivotIndex, otherHeadline));
-};
+const processPivot = (headline, pivotIndex, otherHeadlines, recentBonus) =>
+	_.flatMap(otherHeadlines, otherHeadline =>
+		processPivotWith(headline, pivotIndex, otherHeadline, recentBonus));
 
 const processHeadline = (headline, index, headlines) => {
-	console.log(`- Processing headline #${index} "${headline.headline}"`);
+	const recentBonus = getRecentBonus(index);
 
 	const otherHeadlines = headlines.slice(0);
 	otherHeadlines.splice(index, 1);
@@ -75,7 +123,7 @@ const processHeadline = (headline, index, headlines) => {
 	const end = headline.tokens.length - 1;
 
 	for (let i = 1; i < end; i += 1) {
-		candidates = candidates.concat(processPivot(headline, i, otherHeadlines));
+		candidates = candidates.concat(processPivot(headline, i, otherHeadlines, recentBonus));
 	}
 
 	return candidates;
@@ -92,7 +140,7 @@ const fetchStatuses = () => {
 	console.log(`Fetching statuses from ${TwoHeadlines}`);
 	const options = {
 		screen_name: TwoHeadlines,
-		count: 200,
+		count: recentCount,
 	};
 	return T.get('statuses/user_timeline', options)
 		.then(resp => resp.data);
@@ -118,10 +166,17 @@ const execute = Promise.coroutine(function* executeCo() {
 		throw new Error('No candidates to choose from');
 	}
 
-	console.log(`Choosing from ${candidates.length} candidate(s)`);
-	console.log(candidates);
+	console.log(`Found ${candidates.length} candidate(s)`);
 
-	return tweetHeadline(_.sample(candidates));
+	const scored = _.orderBy(candidates, 'score', 'desc');
+
+	const topN = Math.min(scored.length, 5);
+
+	console.log(`Picking candidate from top ${topN}`);
+
+	const pick = _.random(0, topN - 1);
+
+	return tweetHeadline(scored[pick].combinedHeadline);
 });
 
 execute()
