@@ -21,5 +21,5 @@ rm -f sam-output.yml
 aws cloudformation package --template-file sam-template.json --output-template-file sam-output.yml --s3-bucket "$S3BucketArtifacts" --s3-prefix "$S3PrefixArtifacts"
 
 # Deploy CloudFormation stack
-aws cloudformation deploy --template-file sam-output.yml --stack-name "$StackName"
+aws cloudformation deploy --template-file sam-output.yml --stack-name "$StackName" --capabilities CAPABILITY_IAM
 

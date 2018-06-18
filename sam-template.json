@@ -9,7 +9,7 @@
 				"FunctionName": { "Fn::Sub": "${AWS::StackName}-Tweeter" },
 				"Description": "Four Headlines Tweeter function",
 				"CodeUri": "src/tweeter/",
-				"Handler": "lambda.handler",
+				"Handler": "index.handler",
 				"Runtime": "nodejs8.10",
 				"MemorySize": 128,
 				"Timeout": 30,
