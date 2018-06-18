@@ -1,2 +1,4 @@
+config.sh
+config.json
+sam-output.yml
 node_modules/
-config.js

@@ -1,0 +1,7 @@
+#!/bin/bash
+
+StackName=FourHeadlines
+
+S3BucketArtifacts=your-artifact-bucket
+S3PrefixArtifacts=cloudformation/fourheadlines
+

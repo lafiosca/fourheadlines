@@ -1,0 +1,28 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Transform": "AWS::Serverless-2016-10-31",
+	"Description": "Four Headlines Twitter Bot",
+	"Resources": {
+		"TweeterFunction": {
+			"Type": "AWS::Serverless::Function",
+			"Properties": {
+				"FunctionName": { "Fn::Sub": "${AWS::StackName}-Tweeter" },
+				"Description": "Four Headlines Tweeter function",
+				"CodeUri": "src/tweeter/",
+				"Handler": "index.handler",
+				"Runtime": "nodejs8.10",
+				"MemorySize": 128,
+				"Timeout": 30,
+				"Events": {
+					"Timer": {
+						"Type": "Schedule",
+						"Properties": {
+							"Schedule": "rate(60 minutes)",
+							"Input": "{}"
+						}
+					}
+				}
+			}
+		}
+	}
+}

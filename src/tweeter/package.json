@@ -1,0 +1,30 @@
+{
+  "name": "fourheadlines",
+  "version": "1.0.0",
+  "description": "A Twitter meta-bot by @joelafiosca based on @TwoHeadlines by @tinysubversions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lafiosca/fourheadlines.git"
+  },
+  "keywords": [
+    "twitter",
+    "bot",
+    "headlines"
+  ],
+  "author": "Joe Lafiosca <joe@lafiosca.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lafiosca/fourheadlines/issues"
+  },
+  "homepage": "https://github.com/lafiosca/fourheadlines#readme",
+  "dependencies": {
+    "bluebird": "^3.5.1",
+    "lodash": "^4.17.10",
+    "nice-lambda": "^1.0.0",
+    "twit": "^2.2.10"
+  }
+}
