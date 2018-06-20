@@ -22,7 +22,6 @@
   },
   "homepage": "https://github.com/lafiosca/fourheadlines#readme",
   "dependencies": {
-    "bluebird": "^3.5.1",
     "lodash": "^4.17.10",
     "nice-lambda": "^1.0.0",
     "twit": "^2.2.10"

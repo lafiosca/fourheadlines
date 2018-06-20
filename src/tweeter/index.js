@@ -1,6 +1,5 @@
 'use strict';
 
-const Promise = require('bluebird');
 const _ = require('lodash');
 const Twit = require('twit');
 const { lambda } = require('nice-lambda');
@@ -147,8 +146,8 @@ const fetchStatuses = () => {
 		.then(resp => resp.data);
 };
 
-const execute = Promise.coroutine(function* executeCo() {
-	const statuses = yield fetchStatuses();
+const execute = async () => {
+	const statuses = await fetchStatuses();
 
 	console.log(`Fetched ${statuses.length} statuses from ${TwoHeadlines}`);
 
@@ -178,7 +177,7 @@ const execute = Promise.coroutine(function* executeCo() {
 	const pick = _.random(0, topN - 1);
 
 	return tweetHeadline(scored[pick].combinedHeadline);
-});
+};
 
 exports.handler = lambda(execute);
 
